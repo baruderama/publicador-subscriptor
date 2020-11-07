@@ -1,0 +1,68 @@
+package com.baruCorp;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
+
+import org.zeromq.SocketType;
+import org.zeromq.ZContext;
+import org.zeromq.ZMQ;
+
+public class Publi {
+
+    public static void main(String[] args)
+    {
+        artista1();
+    }
+
+    public static void artista1(){
+        //Establece el ambiente o contexto
+        try(ZContext context = new ZContext()){
+            //Crea un socket tipo PUB
+            ZMQ.Socket publisher= context.createSocket(SocketType.PUB);
+            //Ata el socket a u  puerto
+            publisher.bind("tcp://*:5557");
+            publisher.bind("ipc://weather");
+            
+            //Inicializa los numeros al azar
+            Random srandom= new Random(System.currentTimeMillis());
+            String[] mensajes={"Nuevo Album!","Sencillo Nuevo!","Concierto Pronto en tu ciudad","Mira la nueva entrevista del artista",
+                                "Publicacion del arstista:Hola a todooos :D","Mercancia disponible"};
+
+            Scanner in = new Scanner(System.in); 
+            while(!Thread.currentThread().isInterrupted()){
+                //ZIPCODE
+                int zipcode;
+                zipcode=10000+srandom.nextInt(10000);
+                
+                
+                //System.out.println("mensaje");
+                //String s = in.nextLine(); 
+                //EL MENSAJE 
+                String mensaje=mensajes[srandom.nextInt(mensajes.length)];
+
+                //EL ARTISTA
+                String artista="Bono";
+
+                //Fecha y hora en tiempo real a todo momento
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
+                LocalDateTime now = LocalDateTime.now();
+                String date= dtf.format(now);  
+                
+
+                //Crea el mensaje en cadena de caracteres
+                String update =String.format(
+                    "%05d\n %s \n %s \n %s", zipcode,date,artista,mensaje
+                    );
+
+                //SE ENVIA EL MENSAJE A LO SUSCRIPTORES
+                publisher.send(update,0);
+            }
+            
+        }
+        
+    }
+    
+}
